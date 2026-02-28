@@ -4,11 +4,11 @@
 
 ## Overview
 
-Useful for anyone building agents/assistants for non technical users who want something like the “heartbeat” feature of OpenClaw that allows agentic systems to intelligently support requests like “at x time do y” or “if y happens do z”.
+Useful for anyone building agents/assistants for non technical users who want something like the “heartbeat” feature of OpenClaw - allows agentic systems to intelligently support requests like “at x time do y” or “if y happens do z”.
 
-Rather than using a markdown file that it will later check on set time intervals, the agent writes JSON declarative scripts that live as automation records in a database. Polling and webhook jobs populate an events table. Cron jobs run against the events table and deterministically check conditions, and they run against the automation records table to trigger any scheduled jobs. The agent can specify llm tools in the scripts if the task requires llm intelligence at run time, giving you the flexibility of OpenClaw’s heartbeat feature but the determinism and speed of traditional automation flows.  
+Rather than using a markdown file that it will later check on set time intervals, the agent writes JSON declarative scripts that live as automation records in a database. Polling and webhook jobs populate an events table. Cron jobs run against the events table and deterministically check conditions, and they run against the automation records table to trigger any scheduled jobs. The agent can specify llm tools in the script if the task requires llm intelligence at run time, giving you the flexibility of OpenClaw’s heartbeat feature but the determinism and speed of traditional automation flows.  
 
-The best use case for this architecture is in business/enterprise contexts where dozens of automations are built from natural language and tokens and time are not unlimited. 
+The best use case for this architecture is in business/enterprise contexts where dozens of automations are built from natural language and tokens and time are constraints.
 
 ## How It Works
 
@@ -17,14 +17,14 @@ It allows an LLM agents systems to support requests like “at x time do y” or
 0. Asks any clarifying questions if the request is ambiguous
 1. Executes tool discovery flow:
    - Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db - webhook return schemas are discovered here for webhook jobs
-   - Fetches full tool data for relevant tools, along with any tagged resources
+   - Fetches full tool definitions for relevant tools
    - Executes tools if actual runtime data is needed to build the automation - tool return schemas are discovered here for polling jobs
 2. Writes the JSON declarative script for either a scheduled, polling, or webhook automation
 3. Validation checks are run:
    - JSON is executable
    - All actions specified are valid tools
-   - Preflight check for polling automations (ensuring proper output parsing)
-   - Full tool definitions for all actions were fetched by the agent
+   - Preflight check for polling automations (ensuring proper tool output parsing)
+   - Full tool definitions for all actions specified were fetched by the agent
 4. A concise description of the automation is presented to the user for confirmation and activation
 
 The automation now lives as a record and is fully mutable by the agent, with a limited edit/disable UI for the human user.
@@ -149,6 +149,7 @@ should_alert = evaluate_condition(condition, context)
 
 - **[Getting Started](docs/getting-started.md)** - Installation and building your agent
 - **[Schema Spec](spec/declarative-schema.md)** - Full JSON format (inject into agent prompts)
+- **[DB schemas](schemas/postgres)** - Relevant db schemas
 - **[Validation](docs/validation.md)** - Pre-deployment checks
 - **[Agent Tool Discovery](docs/agent-tool-discovery.md)** - How the agent finds tools
 
