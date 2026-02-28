@@ -1,4 +1,4 @@
-# nl_to_automation
+# Natural Langauge to Automation Architecture
 
 **Natural language to deterministic automation. Execute workflows without LLM inference at runtime.**
 
