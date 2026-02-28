@@ -374,11 +374,3 @@ For semantic filtering (e.g., "mentions client approval"):
 
 This hybrid approach reduces LLM calls while maintaining accuracy.
 
-## Validation Requirements
-
-Before deployment, automations are validated for:
-
-1. **JSON structure** - All required fields present
-2. **Tool existence** - All tools exist in registry
-3. **Agent fetched schemas** - You must call fetch_tool_data for every tool before using it
-4. **Preflight check** (polling) - Source tool is executed to verify trigger_data paths resolve correctly
