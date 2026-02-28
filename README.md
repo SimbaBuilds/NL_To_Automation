@@ -12,7 +12,7 @@ Powers [Juniper](https://juniper.app) - an AI wellness companion on the App Stor
 
 Most automation agents (like OpenClaw) use an **agent-in-the-loop** approach: an LLM decides what to do on every execution. This works but uses LLM tokens on every trigger.
 
-nl_to_automation takes a different approach: use LLM **once** to build a declarative automation, then execute it **deterministically** without any LLM calls.
+nl_to_automation takes a different approach: use LLM **once** to build a declarative automation, then execute it **deterministically** with or without any LLM calls.
 
 | Feature | nl_to_automation | Agent-in-the-loop |
 |---------|------------------|-------------------|
