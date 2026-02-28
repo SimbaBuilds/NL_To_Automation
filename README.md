@@ -68,7 +68,9 @@ The tool discovery flow uses progressive disclosure for context management and p
 2. **Full Tool Data**: Fetch complete schemas only for tools the agent plans to use (~500 tokens per tool)
 3. **Runtime Data** (optional): Execute tools to get real data if needed for building the automation
 
-This approach was borrowed from another agent that has access to 200+ tools across 15+ services. The database-backed tool registry enables easy joining with a memories/resources table based on tags.
+This tool dsicovery flow was borrowed from another agent within Juniper that has access to 200+ tools across 15+ services. The database-backed tool registry enables easy joining with a memories/resources table based on tags.
+
+For polling automations to work, the agent needs to see accurate tool return schemas.  Make sure tool return schemas are left raw in the tool definitions so the agent can write scripts that can accurately parse them.  Avoid the temptation to flatten tool and webhook return payloads.
 
 ## What's Included
 
