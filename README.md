@@ -4,6 +4,8 @@
 
 Powers [Juniper](https://juniper.app) - an AI wellness companion on the App Store.
 
+**See it in action:** [Watch demo video](https://www.youtube.com/watch?v=tmmqHsehkQI)
+
 ---
 
 ## Why nl_to_automation?
