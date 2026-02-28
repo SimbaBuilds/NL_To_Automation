@@ -1,186 +1,165 @@
-# Natural Langauge to Automation Architecture
+# NL to Automation
 
-**Natural language to deterministic automation. Execute workflows with or without LLM inference at runtime.**
+An architecture for building AI agents that create event-driven automations from natural language.
 
-Powers [Juniper](https://juniper.app) - an AI wellness companion on the App Store.
+**[Watch the demo](https://www.youtube.com/watch?v=tmmqHsehkQI)** | Powers [Juniper](https://juniper.app)
 
-**See it in action:** [Watch demo video](https://www.youtube.com/watch?v=tmmqHsehkQI)
+## The Problem
 
----
+You want to let users say things like:
 
-## Why nl_to_automation?
+> "Alert me if my sleep score drops below 70 two nights in a row"
 
-Most automation agents (like OpenClaw) use an **agent-in-the-loop** approach: an LLM decides what to do on every execution. This works but uses LLM tokens on every trigger.
+And have an AI agent build a working automation. But most approaches (like OpenClaw's "heartbeat") run an LLM on every trigger—checking that sleep score every hour burns tokens on simple integer comparisons.
 
-nl_to_automation takes a different approach: use LLM **once** to build a declarative automation, then execute it **deterministically** with or without any LLM calls.
+## The Solution
 
-| Feature | nl_to_automation | Agent-in-the-loop |
-|---------|------------------|-------------------|
-| LLM calls per execution | 0 (unless explicit) | 1+ per trigger |
-| Determinism | 100% repeatable | Varies by LLM response |
-| Pre-deployment validation | Yes | No |
-| LLM token usage at scale | Minimal | Grows with executions |
+**Build once with LLM, execute forever without.**
 
----
-
-## How It Works
-
-**Agent-in-the-loop approach:**
-```
-Trigger fires → LLM decides what to do → Execute → (repeat every time)
-```
-
-**nl_to_automation approach:**
 ```
 User: "Alert me when sleep score < 70"
-       ↓
-LLM builds declarative JSON (once)
-       ↓
-{
-  "trigger_type": "polling",
-  "actions": [
-    {"tool": "oura_get_sleep", "output_as": "sleep"},
-    {
-      "tool": "send_notification",
-      "condition": {"path": "sleep.score", "op": "<", "value": 70},
-      "parameters": {"body": "Sleep score: {{sleep.score}}"}
-    }
-  ]
-}
-       ↓
-Execute deterministically (no LLM) - every trigger
+              ↓
+     Agent builds JSON (once)
+              ↓
+┌─────────────────────────────────────┐
+│ {                                   │
+│   "trigger_type": "polling",        │
+│   "trigger_config": {               │
+│     "source_tool": "oura_get_sleep",│
+│     "interval": "1hr"               │
+│   },                                │
+│   "actions": [{                     │
+│     "tool": "send_notification",    │
+│     "condition": {                  │
+│       "path": "score",              │
+│       "op": "<",                    │
+│       "value": 70                   │
+│     }                               │
+│   }]                                │
+│ }                                   │
+└─────────────────────────────────────┘
+              ↓
+     Executes deterministically
+     (no LLM, every trigger)
 ```
 
----
+The automation lives in a database. Webhooks and polling jobs populate an events table. Cron jobs check conditions deterministically. When you *do* need LLM intelligence at runtime (semantic classification, content generation), you opt in explicitly with `llm_classify` or `llm_transform` tools.
 
-## Key Features
+## What's Included
 
-### Declarative JSON Format
-Define automations as structured JSON with:
-- Trigger types: polling, webhooks, schedules, manual
-- Tool-based actions with parameters
-- Conditional execution
-- Template variables (`{{today}}`, `{{user.email}}`, etc.)
+### Python Package (`nl_to_automation/`)
 
-### Pre-Deployment Validation
-Catch errors before deployment:
-- Verify tools exist
-- Validate parameter schemas
-- Check template syntax
-- Pre-flight polling checks
-
-### Opt-In LLM Intelligence
-Use LLM only when needed via special tools:
-- `llm_classify` - YES/NO or category decisions
-- `llm_transform` - Format/restructure data
-- `call_agent` - Full agent reasoning for complex tasks
-
-Most automations need zero LLM at runtime. When you do need intelligence, you choose exactly where.
-
----
-
-## Building an Automation Agent
-
-The schema spec (`spec/declarative-schema.md`) is designed to be injected into an LLM agent's system prompt:
-
+**Executor** - Runs declarative automations:
 ```python
-from pathlib import Path
+from nl_to_automation import execute_automation
 
-schema = Path("spec/declarative-schema.md").read_text()
-
-system_prompt = f"""You are an automation agent. Build declarative JSON
-automations from natural language using this schema:
-
-{schema}
-"""
-
-# Use with Claude, GPT-4, etc.
+result = await execute_automation(
+    actions=automation["actions"],
+    trigger_data=event_data,
+    tool_registry=my_registry,
+    user_info=user
+)
 ```
 
-See [Getting Started](docs/getting-started.md#building-an-automation-agent) for full agent implementation details.
+**Agent Tools** - For your automation-building agent:
+```python
+from nl_to_automation import create_agent_tools
 
----
+tools = create_agent_tools(tool_registry, automation_db, user_id)
+# tools['definitions'] → Use with Claude/GPT function calling
+# tools['handlers'] → Execute the tools
+```
 
-## Quick Start
+The 3-step tool discovery flow:
+1. `initial_md_fetch` - Get tool names/descriptions for a service
+2. `fetch_tool_data` - Get full parameter schemas for tools you'll use
+3. `deploy_automation` - Validate and save to database
 
-### Installation
+**Validation** - Catch errors before deployment:
+```python
+from nl_to_automation import validate_automation_actions
+
+is_valid, errors = await validate_automation_actions(
+    actions, tool_registry, trigger_type
+)
+```
+
+Checks include: JSON structure, all tools exist, no Handlebars blocks, preflight test for polling (does the source tool return data? do the paths resolve?).
+
+**Schema Spec** - Inject into your agent's system prompt:
+```python
+schema = Path("spec/declarative-schema.md").read_text()
+system_prompt = f"Build automations using this schema:\n{schema}"
+```
+
+### Database Schemas (`schemas/postgres/`)
+
+SQL migrations for:
+- `automation_records` - Stores automation JSON
+- `automation_events` - Populated by webhooks/polling
+- `automation_execution_logs` - Execution history
+- `service_capabilities` - Webhook support, payload schemas
+
+### Edge Functions (`edge_functions/`)
+
+Supabase edge functions for:
+- Webhook handling
+- Scheduled job execution
+- Polling management
+
+## Installation
 
 ```bash
-# From source
-git clone https://github.com/chightower/nl-to-automation.git
-cd nl-to-automation
+git clone https://github.com/SimbaBuilds/NL_To_Automation.git
+cd NL_To_Automation
 pip install -e .
 ```
 
-### Basic Usage
+## Quick Example
 
 ```python
 from nl_to_automation import (
-    execute_automation,
     resolve_template,
     evaluate_condition,
-    UserInfo,
+    execute_automation,
 )
-from nl_to_automation.interfaces import ToolRegistry
 
-# Template resolution works immediately
+# Template resolution
 context = {'user': {'name': 'Alice'}, 'score': 85}
-msg = resolve_template('Hello {{user.name}}, score: {{score}}', context)
-# "Hello Alice, score: 85"
+msg = resolve_template('Hello {{user.name}}, your score is {{score}}', context)
+# → "Hello Alice, your score is 85"
 
 # Condition evaluation
 condition = {'path': 'score', 'op': '<', 'value': 70}
-passes = evaluate_condition(condition, context)  # False
+should_alert = evaluate_condition(condition, context)
+# → False (85 is not < 70)
 
-# For full automation execution, implement ToolRegistry interface
-# See docs/getting-started.md for details
+# Full execution requires implementing ToolRegistry interface
+# See docs/getting-started.md
 ```
-
----
-
-## Project Structure
-
-```
-nl_to_automation/
-├── nl_to_automation/          # Python package
-│   ├── executor.py            # Core automation executor
-│   ├── templates.py           # Template resolution
-│   ├── conditions.py          # Condition evaluation
-│   ├── types.py               # Data types
-│   └── interfaces/            # Extension interfaces
-├── edge_functions/            # Supabase edge functions
-├── schemas/postgres/          # Database schemas
-├── examples/                  # Example automations
-├── tests/                     # Test suite (47 tests)
-└── docs/                      # Documentation
-```
-
----
 
 ## Documentation
 
-- [Getting Started](docs/getting-started.md) - Installation, examples, and building an automation agent
-- [Architecture](docs/architecture.md) - System design and execution model
-- [Declarative Schema](spec/declarative-schema.md) - JSON format spec (designed to be injected into agent prompts)
+- **[Getting Started](docs/getting-started.md)** - Installation and building your agent
+- **[Architecture](docs/architecture.md)** - System design, agent workflow, database architecture
+- **[Schema Spec](spec/declarative-schema.md)** - Full JSON format (inject into agent prompts)
+- **[Validation](docs/validation.md)** - Pre-deployment checks
+- **[Agent Tool Discovery](docs/agent-tool-discovery.md)** - How the agent finds tools
 
----
+## Key Concepts
 
-## Examples
+**Trigger Types**: `polling`, `webhook`, `schedule_recurring`, `schedule_once`, `manual`
 
-See `examples/automations/` for complete automation JSON files:
-- `polling_health_alert.json` - Monitor health data with polling
-- `webhook_slack_notify.json` - Forward events to Slack
-- `scheduled_daily_digest.json` - Daily summary with LLM transform
-- `conditional_multi_action.json` - Multi-step conditional workflow
+**Template Variables**: `{{today}}`, `{{user.email}}`, `{{trigger_data.field}}`, `{{previous_action.output}}`
 
----
+**Condition Operators**: `<`, `>`, `==`, `contains`, `starts_with`, `exists`, etc.
+
+**Opt-in LLM Tools**: `llm_classify` (yes/no decisions), `llm_transform` (format/restructure), `call_agent` (full reasoning)
 
 ## License
 
-MIT License - see [LICENSE](LICENSE)
+MIT
 
 ---
 
-## Credits
-
-Built by [Cameron Hightower](https://github.com/chightower) for [Juniper](https://juniper.app).
+Built by [Cameron Hightower](https://github.com/SimbaBuilds) for [Juniper](https://juniper.app).
