@@ -18,7 +18,7 @@ It allows an LLM agent to intelligently handle user requests like "Let me know w
 
 0. Asks any clarifying questions if the request is ambiguous
 1. Executes tool discovery flow:
-   - Initial tool metadata fetch: tool names and descriptions for relevant services
+   - Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db
    - Fetches full tool data for relevant tools, along with any tagged resources
    - Executes tools if actual runtime data is needed to build the automation
    - Writes the JSON declarative script
