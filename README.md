@@ -1,56 +1,81 @@
 # NL to Automation
 
-An architecture for building AI agents that create event-driven automations from natural language.
-
 **[Watch the demo](https://www.youtube.com/watch?v=tmmqHsehkQI)** | Powers [Juniper](https://juniper.app)
 
-## The Problem
+## Overview
 
-You want to let users say things like:
+Useful for anyone building agents or assistants for non-technical users who want something like the "heartbeat" feature of OpenClaw.
 
-> "Alert me if my sleep score drops below 70 two nights in a row"
+Rather than using a markdown file that an agent checks on set time intervals, automation records live in a database. Polling and webhook jobs populate an events table. Cron jobs run against the events table and deterministically check conditions, and they run against the automation records table to trigger any scheduled jobs.
 
-And have an AI agent build a working automation. But most approaches (like OpenClaw's "heartbeat") run an LLM on every trigger—checking that sleep score every hour burns tokens on simple integer comparisons.
+The agent can specify LLM tools if the task requires LLM intelligence at runtime, giving you the flexibility of OpenClaw's heartbeat feature but the determinism and speed of traditional automation flows. This flexibility ensures that LLM tokens are not spent for something like checking a conditional on an integer value every 5 minutes.
 
-## The Solution
+The architecture can support business contexts where users would want dozens of automations.
 
-**Build once with LLM, execute forever without.**
+## How It Works
+
+It allows an LLM agent to intelligently handle user requests like "Let me know when my HRV drops below 95". The agent:
+
+0. Asks any clarifying questions if the request is ambiguous
+1. Executes tool discovery flow:
+   - Initial tool metadata fetch: tool names and descriptions for relevant services
+   - Fetches full tool data for relevant tools, along with any tagged resources
+   - Executes tools if actual runtime data is needed to build the automation
+   - Writes the JSON declarative script
+2. Validation checks are run:
+   - JSON is executable
+   - All actions specified are valid tools
+   - Preflight check for polling automations (ensuring proper output parsing)
+   - Full tool definitions for all actions were fetched by the agent
+3. A concise description of the automation is presented to the user for confirmation and activation
+
+The automation now lives as a record and is fully mutable by the agent, with a limited edit/disable UI for the human user.
+
+## Architecture
 
 ```
-User: "Alert me when sleep score < 70"
-              ↓
-     Agent builds JSON (once)
-              ↓
-┌─────────────────────────────────────┐
-│ {                                   │
-│   "trigger_type": "polling",        │
-│   "trigger_config": {               │
-│     "source_tool": "oura_get_sleep",│
-│     "interval": "1hr"               │
-│   },                                │
-│   "actions": [{                     │
-│     "tool": "send_notification",    │
-│     "condition": {                  │
-│       "path": "score",              │
-│       "op": "<",                    │
-│       "value": 70                   │
-│     }                               │
-│   }]                                │
-│ }                                   │
-└─────────────────────────────────────┘
-              ↓
-     Executes deterministically
-     (no LLM, every trigger)
+┌─────────────────────┐
+│ automation_records  │  ← Stores automation JSON, status, trigger config
+└──────────┬──────────┘
+           │
+           │ Triggers populate
+           ↓
+┌─────────────────────┐
+│  automation_events  │  ← Webhooks and polling create events here
+└──────────┬──────────┘
+           │
+           │ Cron job (1 min) checks conditions
+           ↓
+┌─────────────────────┐
+│ Declarative Executor│  ← Runs actions deterministically
+└──────────┬──────────┘
+           │
+           │ Logs results
+           ↓
+┌─────────────────────────┐
+│ automation_execution_logs│
+└─────────────────────────┘
 ```
 
-The automation lives in a database. Webhooks and polling jobs populate an events table. Cron jobs check conditions deterministically. When you *do* need LLM intelligence at runtime (semantic classification, content generation), you opt in explicitly with `llm_classify` or `llm_transform` tools.
+- **Webhook/Polling automations**: Populate the events table. A 1-minute cron job processes events and checks conditions before executing.
+- **Scheduled automations**: Run directly against automation_records on a 5-minute cron job (less conditional checking needed).
+
+## Tool Discovery (3-Step Progressive Disclosure)
+
+The tool discovery flow uses progressive disclosure for context management and performance:
+
+1. **Initial Metadata**: Fetch tool names and descriptions for a service (~100 tokens per service)
+2. **Full Tool Data**: Fetch complete schemas only for tools the agent plans to use (~500 tokens per tool)
+3. **Runtime Data** (optional): Execute tools to get real data if needed for building the automation
+
+This approach was borrowed from another agent that has access to 200+ tools across 15+ services. The database-backed tool registry enables easy joining with a memories/resources table based on tags.
 
 ## What's Included
 
 ### Python Package (`nl_to_automation/`)
 
-**Executor** - Runs declarative automations:
 ```python
+# Executor - runs declarative automations
 from nl_to_automation import execute_automation
 
 result = await execute_automation(
@@ -59,24 +84,15 @@ result = await execute_automation(
     tool_registry=my_registry,
     user_info=user
 )
-```
 
-**Agent Tools** - For your automation-building agent:
-```python
+# Agent tools - for your automation-building agent
 from nl_to_automation import create_agent_tools
 
 tools = create_agent_tools(tool_registry, automation_db, user_id)
 # tools['definitions'] → Use with Claude/GPT function calling
 # tools['handlers'] → Execute the tools
-```
 
-The 3-step tool discovery flow:
-1. `initial_md_fetch` - Get tool names/descriptions for a service
-2. `fetch_tool_data` - Get full parameter schemas for tools you'll use
-3. `deploy_automation` - Validate and save to database
-
-**Validation** - Catch errors before deployment:
-```python
+# Validation - catch errors before deployment
 from nl_to_automation import validate_automation_actions
 
 is_valid, errors = await validate_automation_actions(
@@ -84,9 +100,10 @@ is_valid, errors = await validate_automation_actions(
 )
 ```
 
-Checks include: JSON structure, all tools exist, no Handlebars blocks, preflight test for polling (does the source tool return data? do the paths resolve?).
+### Schema Spec (`spec/declarative-schema.md`)
 
-**Schema Spec** - Inject into your agent's system prompt:
+Designed to be injected into your agent's system prompt:
+
 ```python
 schema = Path("spec/declarative-schema.md").read_text()
 system_prompt = f"Build automations using this schema:\n{schema}"
@@ -94,18 +111,11 @@ system_prompt = f"Build automations using this schema:\n{schema}"
 
 ### Database Schemas (`schemas/postgres/`)
 
-SQL migrations for:
-- `automation_records` - Stores automation JSON
-- `automation_events` - Populated by webhooks/polling
-- `automation_execution_logs` - Execution history
-- `service_capabilities` - Webhook support, payload schemas
+SQL migrations for automation_records, automation_events, execution_logs, and service_capabilities.
 
 ### Edge Functions (`edge_functions/`)
 
-Supabase edge functions for:
-- Webhook handling
-- Scheduled job execution
-- Polling management
+Supabase edge functions for webhook handling, scheduled job execution, and polling management.
 
 ## Installation
 
@@ -121,7 +131,6 @@ pip install -e .
 from nl_to_automation import (
     resolve_template,
     evaluate_condition,
-    execute_automation,
 )
 
 # Template resolution
@@ -145,16 +154,6 @@ should_alert = evaluate_condition(condition, context)
 - **[Schema Spec](spec/declarative-schema.md)** - Full JSON format (inject into agent prompts)
 - **[Validation](docs/validation.md)** - Pre-deployment checks
 - **[Agent Tool Discovery](docs/agent-tool-discovery.md)** - How the agent finds tools
-
-## Key Concepts
-
-**Trigger Types**: `polling`, `webhook`, `schedule_recurring`, `schedule_once`, `manual`
-
-**Template Variables**: `{{today}}`, `{{user.email}}`, `{{trigger_data.field}}`, `{{previous_action.output}}`
-
-**Condition Operators**: `<`, `>`, `==`, `contains`, `starts_with`, `exists`, etc.
-
-**Opt-in LLM Tools**: `llm_classify` (yes/no decisions), `llm_transform` (format/restructure), `call_agent` (full reasoning)
 
 ## License
 
