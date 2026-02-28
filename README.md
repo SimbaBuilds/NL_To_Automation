@@ -1,6 +1,6 @@
 # Natural Langauge to Automation Architecture
 
-**Natural language to deterministic automation. Execute workflows without LLM inference at runtime.**
+**Natural language to deterministic automation. Execute workflows with or without LLM inference at runtime.**
 
 Powers [Juniper](https://juniper.app) - an AI wellness companion on the App Store.
 
