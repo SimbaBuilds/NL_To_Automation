@@ -366,6 +366,86 @@ No need for LLM to "decide" what to do - the JSON already encodes the logic.
 
 The key difference is when LLM tokens are used, not whether the software is free (both are).
 
+## Automations Agent Workflow
+
+This section describes how an LLM agent builds automations from natural language. This is useful for anyone building agents/assistants for non-technical users who want event-driven automation capabilities.
+
+### How It Differs from OpenClaw's "Heartbeat"
+
+The architecture looks similar to the "heartbeat" feature of OpenClaw but is very different under the hood:
+
+- **OpenClaw**: Uses a markdown file that an agent checks on set time intervals, invoking LLM on every check
+- **nl_to_automation**: Automation records live in a database. Polling and webhook jobs populate an events table. Cron jobs run against the events table and deterministically check conditions.
+
+The agent can specify LLM tools if the task requires LLM intelligence at runtime, giving you the flexibility of OpenClaw's heartbeat feature but the determinism and speed of traditional automation flows. This ensures that LLM tokens are not spent for something like checking a conditional on an integer value every 5 minutes.
+
+The architecture can support business contexts where users need dozens of active automations.
+
+### Agent Flow Example
+
+When a user says "Let me know when my HRV drops below 95", the agent:
+
+**0. Clarifying Questions**
+- Ask any clarifying questions if the request is ambiguous
+
+**1. Tool Discovery Flow**
+- Initial metadata fetch: Tool names and descriptions for relevant services
+- Full tool data fetch: Complete parameter schemas for relevant tools, plus any tagged resources
+- Runtime data fetch (optional): Execute tools if actual data is needed to build the automation
+
+**2. Build Declarative JSON**
+- Generate the automation JSON based on discovered tools and user intent
+- Validation checks are run:
+  - JSON is executable (valid structure)
+  - All actions specified are valid tools
+  - Preflight check for polling automations (ensuring proper output parsing)
+  - Full tool defs for all actions were fetched by the agent
+
+**3. User Confirmation**
+- A concise description of the automation is presented to the user for confirmation
+- User activates the automation
+
+The automation now lives as a record in the database and is fully mutable by the agent, with a limited edit/disable UI for the human user.
+
+### Database Architecture
+
+```
+┌─────────────────────┐
+│ automation_records  │  ← Stores automation JSON, status, trigger config
+└──────────┬──────────┘
+           │
+           │ Triggers populate
+           ↓
+┌─────────────────────┐
+│  automation_events  │  ← Webhooks and polling create events here
+└──────────┬──────────┘
+           │
+           │ Cron job (1 min) checks conditions
+           ↓
+┌─────────────────────┐
+│ Declarative Executor│  ← Runs actions deterministically
+└──────────┬──────────┘
+           │
+           │ Logs results
+           ↓
+┌─────────────────────────┐
+│ automation_execution_logs│
+└─────────────────────────┘
+```
+
+- **Webhook/Polling automations**: Populate the events table. A 1-minute cron job processes events and checks conditions before executing.
+- **Scheduled automations**: Run directly against automation_records on a 5-minute cron job (less conditional checking needed).
+
+### Tool Discovery (3-Step Progressive Disclosure)
+
+The tool discovery flow uses progressive disclosure for context management:
+
+1. **Initial Metadata**: Fetch tool names and descriptions for a service (~100 tokens per service)
+2. **Full Tool Data**: Fetch complete schemas only for tools the agent plans to use (~500 tokens per tool)
+3. **Runtime Data** (optional): Execute tools to get real data if needed for building the automation
+
+This approach was borrowed from another agent that has access to 200+ tools across 15+ services. The database-backed tool registry enables easy joining with a memories/resources table based on tags.
+
 ## Production Deployment
 
 ### Recommended Architecture
