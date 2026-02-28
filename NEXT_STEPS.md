@@ -17,13 +17,22 @@
 - [x] Database schemas (including webhook_payload_schemas)
 - [x] Edge functions (copied from Juniper, still have some Juniper references)
 
-## Not Refactored (Still Have Juniper Dependencies)
+## Implementing LLM Tools
 
-These files are in the repo but NOT exported in `__init__.py`:
-- `validation.py` - Still has Supabase/Juniper imports (see docs/validation.md for what to implement)
-- `llm_tools.py` - Still has Supabase/Juniper imports
+The `llm_tools.py` file was removed (had Juniper-specific dependencies).
 
-Users implement their own validation and LLM tools using the interfaces provided.
+To add LLM capabilities to your automations, implement the `LLMProvider` interface:
+
+```python
+from nl_to_automation.interfaces import LLMProvider
+
+class MyLLMProvider(LLMProvider):
+    async def generate(self, prompt: str, **kwargs) -> str:
+        # Your LLM implementation
+        pass
+```
+
+Then create tools like `llm_classify`, `llm_transform` that use your provider.
 
 ## Validation Checklist
 
