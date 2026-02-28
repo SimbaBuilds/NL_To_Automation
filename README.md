@@ -100,13 +100,13 @@ is_valid, errors = await validate_automation_actions(
 )
 ```
 
-### Schema Spec (`spec/declarative-schema.md`)
+### Agent Prompt (`spec/agent-prompt.md`)
 
-Designed to be injected into your agent's system prompt:
+Inject into your automation-building agent's system prompt:
 
 ```python
-schema = Path("spec/declarative-schema.md").read_text()
-system_prompt = f"Build automations using this schema:\n{schema}"
+schema = Path("spec/agent-prompt.md").read_text()
+system_prompt = f"You build automations from natural language.\n\n{schema}"
 ```
 
 ### Database Schemas (`schemas/postgres/`)
@@ -150,8 +150,8 @@ should_alert = evaluate_condition(condition, context)
 ## Documentation
 
 - **[Getting Started](docs/getting-started.md)** - Installation and building your agent
-- **[Schema Spec](spec/declarative-schema.md)** - Full JSON format (inject into agent prompts)
-- **[DB schemas](schemas/postgres)** - Relevant db schemas
+- **[Agent Prompt](spec/agent-prompt.md)** - Schema spec to inject into your agent's system prompt
+- **[DB Schemas](schemas/postgres)** - Relevant database schemas
 - **[Validation](docs/validation.md)** - Pre-deployment checks
 - **[Agent Tool Discovery](docs/agent-tool-discovery.md)** - How the agent finds tools
 
