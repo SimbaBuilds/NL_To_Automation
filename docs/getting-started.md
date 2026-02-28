@@ -347,7 +347,6 @@ if errors:
 
 ## Next Steps
 
-- Read [Architecture](architecture.md) to understand how nl_to_automation works
 - See [Declarative Schema Spec](../spec/declarative-schema.md) for agent prompt instructions
 - Check out the example automations in `examples/automations/`
 
