@@ -21,13 +21,13 @@ It allows an LLM agent to intelligently handle user requests like "Let me know w
    - Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db
    - Fetches full tool data for relevant tools, along with any tagged resources
    - Executes tools if actual runtime data is needed to build the automation
-   - Writes the JSON declarative script
-2. Validation checks are run:
+2. Writes the JSON declarative script
+3. Validation checks are run:
    - JSON is executable
    - All actions specified are valid tools
    - Preflight check for polling automations (ensuring proper output parsing)
    - Full tool definitions for all actions were fetched by the agent
-3. A concise description of the automation is presented to the user for confirmation and activation
+4. A concise description of the automation is presented to the user for confirmation and activation
 
 The automation now lives as a record and is fully mutable by the agent, with a limited edit/disable UI for the human user.
 
