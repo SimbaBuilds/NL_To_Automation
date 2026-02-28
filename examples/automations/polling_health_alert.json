@@ -1,0 +1,31 @@
+{
+  "name": "Low Sleep Score Alert",
+  "description": "Monitor Oura sleep score and send notification if it drops below 70",
+  "trigger_type": "polling",
+  "trigger_config": {
+    "source_tool": "oura_get_daily_sleep",
+    "polling_interval_minutes": 60,
+    "tool_params": {
+      "start_date": "{{yesterday}}",
+      "end_date": "{{today}}"
+    },
+    "filter": {
+      "path": "score",
+      "op": "<",
+      "value": 70
+    }
+  },
+  "actions": [
+    {
+      "id": "send_notification",
+      "tool": "send_push_notification",
+      "parameters": {
+        "title": "Low Sleep Score Alert",
+        "body": "Your sleep score was {{trigger_data.score}} - consider prioritizing rest tonight."
+      }
+    }
+  ],
+  "variables": {
+    "min_acceptable_score": 70
+  }
+}

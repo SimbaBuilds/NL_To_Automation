@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nl-to-automation"
+version = "0.1.0"
+authors = [
+    { name="Cameron Hightower", email="cameron@juniper.app" },
+]
+description = "Natural language to deterministic automation - execute workflows without LLM at runtime"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+keywords = ["automation", "workflow", "llm", "declarative", "deterministic"]
+dependencies = [
+    # No runtime dependencies - pure Python!
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "mypy>=1.0.0",
+    "black>=23.0.0",
+]
+llm = [
+    "anthropic>=0.18.0",
+    "openai>=1.0.0",
+    "google-generativeai>=0.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/chightower/nl-to-automation"
+Documentation = "https://github.com/chightower/nl-to-automation/tree/main/docs"
+Repository = "https://github.com/chightower/nl-to-automation"
+"Bug Tracker" = "https://github.com/chightower/nl-to-automation/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nl_to_automation*"]
+exclude = ["tests*"]
+
+[tool.black]
+line-length = 120
+target-version = ['py310', 'py311', 'py312']
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

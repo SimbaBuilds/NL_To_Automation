@@ -1,0 +1,50 @@
+{
+  "name": "Urgent Email to Slack",
+  "description": "Forward urgent emails to Slack #alerts channel in real-time",
+  "trigger_type": "webhook",
+  "trigger_config": {
+    "service": "Gmail",
+    "event_type": "message.created",
+    "filters": {
+      "operator": "OR",
+      "clauses": [
+        {
+          "path": "subject",
+          "op": "contains",
+          "value": "urgent",
+          "case_insensitive": true
+        },
+        {
+          "path": "subject",
+          "op": "contains",
+          "value": "ASAP",
+          "case_insensitive": true
+        },
+        {
+          "path": "from",
+          "op": "contains",
+          "value": "boss@company.com"
+        }
+      ]
+    }
+  },
+  "actions": [
+    {
+      "id": "post_to_slack",
+      "tool": "slack_post_message",
+      "parameters": {
+        "channel": "#alerts",
+        "text": ":rotating_light: Urgent email from {{trigger_data.from}}",
+        "blocks": [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "*Subject:* {{trigger_data.subject}}\n*From:* {{trigger_data.from}}\n*Preview:* {{trigger_data.snippet}}"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Daily Health Digest",
+  "description": "Send a daily summary of health metrics every morning at 9 AM",
+  "trigger_type": "schedule_recurring",
+  "trigger_config": {
+    "interval": "daily",
+    "time_of_day": "09:00"
+  },
+  "actions": [
+    {
+      "id": "fetch_sleep",
+      "tool": "oura_get_daily_sleep",
+      "parameters": {
+        "start_date": "{{yesterday}}",
+        "end_date": "{{yesterday}}"
+      },
+      "output_as": "sleep"
+    },
+    {
+      "id": "fetch_activity",
+      "tool": "oura_get_daily_activity",
+      "parameters": {
+        "start_date": "{{yesterday}}",
+        "end_date": "{{yesterday}}"
+      },
+      "output_as": "activity"
+    },
+    {
+      "id": "generate_summary",
+      "tool": "llm_transform",
+      "parameters": {
+        "text": "{\"sleep\": {{sleep}}, \"activity\": {{activity}}}",
+        "instruction": "Create a friendly 2-3 sentence summary of this health data, highlighting any notable patterns or achievements.",
+        "output_format": "text"
+      },
+      "output_as": "summary"
+    },
+    {
+      "id": "send_digest",
+      "tool": "send_push_notification",
+      "parameters": {
+        "title": "Your Daily Health Digest",
+        "body": "{{summary}}"
+      }
+    }
+  ]
+}

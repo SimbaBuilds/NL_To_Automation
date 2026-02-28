@@ -1,0 +1,76 @@
+{
+  "name": "Smart Slack Message Router",
+  "description": "Classify Slack messages and route to appropriate channels based on content",
+  "trigger_type": "webhook",
+  "trigger_config": {
+    "service": "Slack",
+    "event_type": "message.channels"
+  },
+  "actions": [
+    {
+      "id": "classify_urgency",
+      "tool": "llm_classify",
+      "parameters": {
+        "text": "{{trigger_data.text}}",
+        "question": "Is this message urgent and requires immediate attention?",
+        "options": ["URGENT", "NORMAL", "LOW_PRIORITY"]
+      },
+      "output_as": "urgency"
+    },
+    {
+      "id": "classify_topic",
+      "tool": "llm_classify",
+      "parameters": {
+        "text": "{{trigger_data.text}}",
+        "question": "What is the primary topic of this message?",
+        "options": ["TECHNICAL", "SALES", "SUPPORT", "GENERAL"]
+      },
+      "output_as": "topic"
+    },
+    {
+      "id": "notify_urgent_technical",
+      "tool": "slack_post_message",
+      "condition": {
+        "operator": "AND",
+        "clauses": [
+          {"path": "urgency.answer", "op": "==", "value": "URGENT"},
+          {"path": "topic.answer", "op": "==", "value": "TECHNICAL"}
+        ]
+      },
+      "parameters": {
+        "channel": "#tech-urgent",
+        "text": ":rotating_light: Urgent technical issue from {{trigger_data.user}}: {{trigger_data.text}}"
+      }
+    },
+    {
+      "id": "route_to_sales",
+      "tool": "slack_post_message",
+      "condition": {
+        "path": "topic.answer",
+        "op": "==",
+        "value": "SALES"
+      },
+      "parameters": {
+        "channel": "#sales-leads",
+        "text": "Potential lead from {{trigger_data.user}}: {{trigger_data.text}}"
+      }
+    },
+    {
+      "id": "create_support_ticket",
+      "tool": "create_ticket",
+      "condition": {
+        "path": "topic.answer",
+        "op": "==",
+        "value": "SUPPORT"
+      },
+      "parameters": {
+        "title": "Support request from Slack",
+        "description": "{{trigger_data.text}}",
+        "priority": "{{urgency.answer}}"
+      }
+    }
+  ],
+  "variables": {
+    "notification_enabled": true
+  }
+}
