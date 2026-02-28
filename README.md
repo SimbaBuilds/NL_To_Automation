@@ -29,6 +29,8 @@ It allows an LLM agents systems to support requests like “at x time do y” or
 
 The automation now lives as a record and is fully mutable by the agent, with a limited edit/disable UI for the human user.
 
+Agent works well running on Sonnet 4.5 in my system.
+
 ## Architecture
 
 ```
