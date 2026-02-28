@@ -1,6 +1,6 @@
 # NL to Automation
 
-**[Watch the demo](https://www.youtube.com/watch?v=tmmqHsehkQI)** | Powers [Juniper](https://juniper.app)
+**[See it in Acrtion](https://www.youtube.com/watch?v=tmmqHsehkQI)** | Powers [Juniper](https://juniper.app)
 
 ## Overview
 
