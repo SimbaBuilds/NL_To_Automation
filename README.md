@@ -4,13 +4,11 @@
 
 ## Overview
 
-Useful for anyone building agents or assistants for non-technical users who want something like the "heartbeat" feature of OpenClaw.
+Useful for anyone building agents/assistants for non technical users who want something like the “heartbeat” feature of OpenClaw that allows agentic systems to intelligently support requests like “at x time do y” or “if y happens do z”.
 
-Rather than using a markdown file that an agent checks on set time intervals, automation records live in a database. Polling and webhook jobs populate an events table. Cron jobs run against the events table and deterministically check conditions, and they run against the automation records table to trigger any scheduled jobs.
+Rather than using a markdown file that it will later check on set time intervals, the agent writes JSON declarative scripts that live as automation records in a database. Polling and webhook jobs populate an events table. Cron jobs run against the events table and deterministically check conditions, and they run against the automation records table to trigger any scheduled jobs. The agent can specify llm tools in the scripts if the task requires llm intelligence at run time, giving you the flexibility of OpenClaw’s heartbeat feature but the determinism and speed of traditional automation flows.  
 
-The agent can specify LLM tools if the task requires LLM intelligence at runtime, giving you the flexibility of OpenClaw's heartbeat feature but the determinism and speed of traditional automation flows. This flexibility ensures that LLM tokens are not spent for something like checking a conditional on an integer value every 5 minutes.
-
-The architecture can support business contexts where users would want dozens of automations.
+The best use case for this architecture is in business/enterprise contexts where dozens of automations are built from natural language and tokens and time are not unlimited. 
 
 ## How It Works
 
