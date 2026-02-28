@@ -1,6 +1,12 @@
 # Agent Tool Discovery
 
-This document explains how an automation-building agent discovers available tools and service capabilities. This pattern is used by Juniper's EDA (Event-Driven Automation) Agent.
+This document explains how an automation-building agent discovers available tools and service capabilities.
+
+**Implementation:** See `nl_to_automation/agent_tools.py` for the actual tool implementations:
+- `initial_md_fetch()` - Step 1: Fetch tool names/descriptions
+- `fetch_tool_data()` - Step 2: Fetch full tool schemas
+- `deploy_automation()` - Step 3: Validate and save
+- `create_agent_tools()` - Helper to create tools for LLM function calling
 
 ## Overview
 

@@ -6,6 +6,8 @@
 - [x] Core Python modules extracted (types.py, templates.py, conditions.py)
 - [x] Interfaces created (ToolRegistry, AutomationDatabase, etc.)
 - [x] Executor refactored to use interfaces
+- [x] Validation module refactored (no external dependencies)
+- [x] Agent tools extracted (initial_md_fetch, fetch_tool_data, deploy_automation)
 - [x] Test suite (47 tests passing)
 - [x] Documentation:
   - getting-started.md - Installation and agent setup
@@ -16,6 +18,31 @@
 - [x] Example automations (4 complete)
 - [x] Database schemas (including webhook_payload_schemas)
 - [x] Edge functions (copied from Juniper, still have some Juniper references)
+
+## Agent Tools
+
+The `agent_tools.py` module provides tools for an LLM agent to build automations:
+
+```python
+from nl_to_automation import (
+    AgentContext,
+    initial_md_fetch,
+    fetch_tool_data,
+    deploy_automation,
+    create_agent_tools,
+)
+
+# Option 1: Use individual functions
+context = AgentContext()
+tools_list = await initial_md_fetch("Oura", tool_registry, automation_db)
+tool_details = await fetch_tool_data(["oura_get_sleep"], tool_registry, context)
+success, msg, id = await deploy_automation(automation, user_id, db, registry, context)
+
+# Option 2: Use create_agent_tools for LLM function calling
+tools = create_agent_tools(tool_registry, automation_db, user_id)
+# tools['definitions'] - Tool schemas for Claude/GPT
+# tools['handlers'] - Async handlers to execute tools
+```
 
 ## Implementing LLM Tools
 
@@ -34,18 +61,8 @@ class MyLLMProvider(LLMProvider):
 
 Then create tools like `llm_classify`, `llm_transform` that use your provider.
 
-## Validation Checklist
-
-See [docs/validation.md](docs/validation.md) for full details. Key checks:
-
-1. **Schema validation** - JSON structure is valid
-2. **Tool validation** - All tools exist in registry
-3. **Agent schema verification** - Agent fetched tool defs before using them
-4. **Preflight for polling** - Source tool returns data, paths resolve
-
 ## Optional Future Work
 
-- Refactor validation.py to use interfaces (remove Supabase deps)
-- Refactor llm_tools.py to use LLMProvider interface
 - Clean up edge functions to remove Juniper-specific code
 - Add more example tool registry implementations
+- Add tests for agent_tools.py

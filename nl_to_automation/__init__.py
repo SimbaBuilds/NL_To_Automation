@@ -53,6 +53,16 @@ from .validation import (
     sanitize_action_strings,
 )
 
+# Agent Tools (for building automations)
+from .agent_tools import (
+    AgentContext,
+    initial_md_fetch,
+    fetch_tool_data,
+    deploy_automation,
+    format_automation_summary,
+    create_agent_tools,
+)
+
 __all__ = [
     "__version__",
     # Types
@@ -88,4 +98,11 @@ __all__ = [
     "LLMProvider",
     "WebSearchProvider",
     "NotificationHandler",
+    # Agent Tools
+    "AgentContext",
+    "initial_md_fetch",
+    "fetch_tool_data",
+    "deploy_automation",
+    "format_automation_summary",
+    "create_agent_tools",
 ]
