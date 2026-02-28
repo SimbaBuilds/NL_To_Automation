@@ -14,14 +14,14 @@ The architecture can support business contexts where users would want dozens of 
 
 ## How It Works
 
-It allows an LLM agent to intelligently handle user requests like "Let me know when my HRV drops below 95". The agent:
+It allows an LLM agents systems to support requests like “at x time do y” or “if y happens do z”. The agent:
 
 0. Asks any clarifying questions if the request is ambiguous
 1. Executes tool discovery flow:
-   - Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db
+   - Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db - webhook return schemas are discovered here for webhook jobs
    - Fetches full tool data for relevant tools, along with any tagged resources
-   - Executes tools if actual runtime data is needed to build the automation
-2. Writes the JSON declarative script
+   - Executes tools if actual runtime data is needed to build the automation - tool return schemas are discovered here for polling jobs
+2. Writes the JSON declarative script for either a scheduled, polling, or webhook automation
 3. Validation checks are run:
    - JSON is executable
    - All actions specified are valid tools
@@ -67,8 +67,6 @@ The tool discovery flow uses progressive disclosure for context management and p
 1. **Initial Metadata**: Fetch tool names and descriptions for a service (~100 tokens per service)
 2. **Full Tool Data**: Fetch complete schemas only for tools the agent plans to use (~500 tokens per tool)
 3. **Runtime Data** (optional): Execute tools to get real data if needed for building the automation
-
-This tool dsicovery flow was borrowed from another agent within Juniper that has access to 200+ tools across 15+ services. The database-backed tool registry enables easy joining with a memories/resources table based on tags.
 
 For polling automations to work, the agent needs to see accurate tool return schemas.  Make sure tool return schemas are left raw in the tool definitions so the agent can write scripts that can accurately parse them.  Avoid the temptation to flatten tool and webhook return payloads.
 
@@ -152,7 +150,6 @@ should_alert = evaluate_condition(condition, context)
 ## Documentation
 
 - **[Getting Started](docs/getting-started.md)** - Installation and building your agent
-- **[Architecture](docs/architecture.md)** - System design, agent workflow, database architecture
 - **[Schema Spec](spec/declarative-schema.md)** - Full JSON format (inject into agent prompts)
 - **[Validation](docs/validation.md)** - Pre-deployment checks
 - **[Agent Tool Discovery](docs/agent-tool-discovery.md)** - How the agent finds tools
