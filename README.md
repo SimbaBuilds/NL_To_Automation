@@ -18,7 +18,7 @@ It allows an LLM agents systems to support requests like “at x time do y” or
 1. Executes tool discovery flow:
    - Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db - webhook return schemas are discovered here for webhook jobs
    - Fetches full tool definitions for relevant tools - tool return schemas are discovered here for polling jobs
-   - Executes tools if actual runtime data is needed to build the automation 
+   - Executes tools if actual runtime data (like a Slack channel ID) is needed to build the automation 
 2. Writes the JSON declarative script for either a scheduled, polling, or webhook automation
 3. Validation checks are run:
    - JSON is executable
