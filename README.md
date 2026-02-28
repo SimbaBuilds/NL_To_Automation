@@ -17,8 +17,8 @@ It allows an LLM agents systems to support requests like “at x time do y” or
 0. Asks any clarifying questions if the request is ambiguous
 1. Executes tool discovery flow:
    - Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db - webhook return schemas are discovered here for webhook jobs
-   - Fetches full tool definitions for relevant tools
-   - Executes tools if actual runtime data is needed to build the automation - tool return schemas are discovered here for polling jobs
+   - Fetches full tool definitions for relevant tools - tool return schemas are discovered here for polling jobs
+   - Executes tools if actual runtime data is needed to build the automation 
 2. Writes the JSON declarative script for either a scheduled, polling, or webhook automation
 3. Validation checks are run:
    - JSON is executable
