@@ -16,15 +16,15 @@ It allows an LLM agents systems to support requests like “at x time do y” or
 
 0. Asks any clarifying questions if the request is ambiguous
 1. Executes tool discovery flow:
-   - Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db - webhook return schemas are discovered here for webhook jobs
-   - Fetches full tool definitions for relevant tools - tool return schemas are discovered here for polling jobs
-   - Executes tools if actual runtime data (like a Slack channel ID) is needed to build the automation 
+   a. Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db - webhook return schemas are discovered here for webhook jobs.  Agent specifies service name(s) (Slack, Gmail, Notion) in tool param.
+   b. Fetches full tool definitions for relevant tools - tool return schemas are discovered here for polling jobs
+   c. Executes tools if actual runtime data (like a Slack channel ID) is needed to build the automation 
 2. Writes the JSON declarative script for either a scheduled, polling, or webhook automation
 3. Validation checks are run:
-   - JSON is executable
-   - All actions specified are valid tools
-   - Preflight check for polling automations (ensuring proper tool output parsing)
-   - Full tool definitions for all actions specified were fetched by the agent
+   a. JSON is executable
+   b. All actions specified are valid tools
+   c. Preflight check for polling automations (ensuring proper tool output parsing)
+   d. Full tool definitions for all actions specified were fetched by the agent
 4. A concise description of the automation is presented to the user for confirmation and activation
 
 The automation now lives as a record and is fully mutable by the agent, with an optional limited edit/disable UI for the human user.
