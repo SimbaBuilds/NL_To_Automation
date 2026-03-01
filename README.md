@@ -1,4 +1,4 @@
-# Natural Lnaguage to Standing Automation Agentic Architecture
+# Natural Language to Standing Automation Agentic Architecture
 
 ## Overview
 
@@ -18,16 +18,16 @@ It allows an LLM agents systems to support requests like “at x time do y” or
 1. Executes tool discovery flow:
    a. Initial tool metadata fetch: fetches tool names and descriptions for relevant services from the db - webhook return schemas are discovered here for webhook jobs.  Agent specifies service name(s) (Slack, Gmail, Notion) in tool param.
    b. Fetches full tool definitions for relevant tools - tool return schemas are discovered here for polling jobs
-   c. Executes tools if actual runtime data (like a Slack channel ID) is needed to build the automation 
+   c. Optionally executes tools if actual runtime data (like a Slack channel ID) is needed to build the automation 
 2. Writes the JSON declarative script for either a scheduled, polling, or webhook automation
 3. Validation checks are run:
    a. JSON is executable
    b. All actions specified are valid tools
-   c. Preflight check for polling automations (ensuring proper tool output parsing)
+   c. Preflight check for polling automations (check proper tool output parsing)
    d. Full tool definitions for all actions specified were fetched by the agent
 4. A concise description of the automation is presented to the user for confirmation and activation
 
-The automation now lives as a record and is fully mutable by the agent, with an optional limited edit/disable UI for the human user.
+The automation now lives as a db record and is fully mutable by the agent, with an optional limited edit/disable UI for the human user.
 
 Agent works well running on Sonnet 4.5 in my system - much of the specific defensive promppting in the declarative schema is likely specific to Sonnet 4.5 outputs.
 
@@ -60,15 +60,7 @@ Agent works well running on Sonnet 4.5 in my system - much of the specific defen
 - **Webhook/Polling automations**: Populate the events table. A 1-minute cron job processes events and checks conditions before executing.
 - **Scheduled automations**: Run directly against automation_records on a 5-minute cron job (less conditional checking needed).
 
-## Tool Discovery (3-Step Progressive Disclosure)
-
-The tool discovery flow uses progressive disclosure for context management and performance:
-
-1. **Initial Metadata**: Fetch tool names and descriptions for a service (~100 tokens per service)
-2. **Full Tool Data**: Fetch complete schemas only for tools the agent plans to use (~500 tokens per tool)
-3. **Runtime Data** (optional): Execute tools to get real data if needed for building the automation
-
-For polling automations to work, the agent needs to see accurate tool return schemas.  Make sure tool return schemas are left raw in the tool definitions so the agent can write scripts that can accurately parse them.  Avoid the temptation to flatten tool and webhook return payloads.
+For polling automations to work, the agent needs to see accurate tool return schemas.  Make sure tool return schemas are left raw in the tool definitions so the agent can write scripts that can accurately parse them.  AVOID the temptation to flatten tool and webhook return payloads.
 
 ## What's Included
 
