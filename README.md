@@ -2,7 +2,7 @@
 
 ## Overview
 
-Useful for anyone building agents/assistants for non technical users who want something like the “heartbeat” feature of OpenClaw - allows agentic systems to intelligently support requests like “at x time do y” or “if y happens do z”.
+Useful for anyone building agents/assistants for non technical users who want something like the “heartbeat” feature of OpenClaw, allowing agentic systems to intelligently support requests like “at x time do y” or “if y happens do z”.
 
 How it differs: 
 Rather than using a markdown file that it will later check on set time intervals, the agent writes JSON declarative scripts that live as automation records in a database. Polling and webhook jobs populate an events table. Cron jobs run against the events table and deterministically check conditions, and they run against the automation records table to trigger any scheduled jobs. The agent can specify llm tools in the script if the task requires llm intelligence at run time(analysis, classification, etc...), giving you the flexibility of OpenClaw’s heartbeat feature but the determinism and speed of traditional automation flows.  
@@ -30,7 +30,7 @@ It allows an LLM agents systems to support requests like “at x time do y” or
 
 The automation now lives as a db record and is fully mutable by the agent, with an optional limited edit/disable UI for the human user.
 
-Agent works well running on Sonnet 4.5 in my system - much of the specific defensive promppting in the declarative schema is likely specific to Sonnet 4.5 outputs.
+Agent works well running on Sonnet 4.5 (claude-sonnet-4-5-20250929) in my system - much of the specific defensive promppting in the declarative schema is likely specific to Sonnet 4.5 outputs.
 
 ## Architecture
 
