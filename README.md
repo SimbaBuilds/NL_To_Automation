@@ -2,7 +2,7 @@
 
 ## Overview
 
-Allows agentic systems to intelligently support requests for scheduled (at x time do y) and event driven (if y happens do z) tasks.  
+Allows agentic systems to intelligently support requests for scheduled and event driven tasks.  
 
 Similar to the “heartbeat” feature of OpenClaw, but scalable.  
 
