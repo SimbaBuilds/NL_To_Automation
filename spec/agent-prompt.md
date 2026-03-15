@@ -83,38 +83,8 @@ The system calls `source_tool` on the specified interval, compares results to pr
 }
 ```
 
-## CRITICAL: Trigger Data Format
-
-**The trigger_data format is DIFFERENT for webhooks vs polling.**
-
-### Webhook Trigger Data
-
-Webhooks provide trigger_data as a **FLAT OBJECT** with top-level fields.
-
-```json
-// CORRECT for webhooks:
-{"body": "Email from {{from}}: {{subject}}"}
-
-// WRONG for webhooks - DO NOT use array syntax:
-{"body": "{{trigger_data.0.subject}}"}
-```
-
-Check `webhook_payload_schemas` via initial_md_fetch for available fields.
-
-### Polling Trigger Data
-
-The source tool's return fields become `trigger_data`. Format depends on aggregation_mode:
-
-- **latest** (health services default): `{{field}}` - single item promoted to top level
-- **per_item** (non-health default): `{{trigger_data.0.field}}` - array item, needs index
-
-Check the tool's `returns` field via fetch_tool_data to determine structure.
 
 ## Template Variables
-
-### IMPORTANT: Only Simple Syntax Supported
-
-**Only `{{variable}}` syntax works.** Do NOT use Handlebars blocks like `{{#if}}`, `{{#each}}`, `{{#unless}}`, or `{{/if}}`. These will NOT be processed and appear as raw text.
 
 For conditional content, use separate actions with `condition` fields:
 
@@ -333,7 +303,7 @@ When accessing array data, add an existence condition to prevent literal `{{...}
 }
 ```
 
-## Optional: LLM Tools for Runtime Intelligence
+## LLM Tools for Runtime Intelligence
 
 Most automations execute deterministically without LLM calls. For cases requiring runtime intelligence, you can use LLM tools:
 
