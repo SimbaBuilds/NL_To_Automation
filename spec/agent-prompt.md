@@ -271,38 +271,6 @@ When accessing array data, add an existence condition to prevent literal `{{...}
 }
 ```
 
-### Example 4: Daily Health Log (No Notification)
-
-```json
-{
-  "name": "Daily Health Log",
-  "trigger_type": "schedule_recurring",
-  "trigger_config": {"interval": "daily", "time_of_day": "21:00"},
-  "actions": [
-    {
-      "id": "get_sleep",
-      "tool": "oura_get_daily_sleep",
-      "parameters": {"start_date": "{{today}}", "end_date": "{{today}}"},
-      "output_as": "sleep"
-    },
-    {
-      "id": "get_activity",
-      "tool": "oura_get_daily_activity",
-      "parameters": {"start_date": "{{today}}", "end_date": "{{today}}"},
-      "output_as": "activity"
-    },
-    {
-      "id": "log_to_notion",
-      "tool": "notion_append_block",
-      "parameters": {
-        "block_id": "{{user.health_log_page_id}}",
-        "children": [{"paragraph": {"text": "{{today}}: Sleep {{sleep.data.0.score}}, Activity {{activity.data.0.score}}"}}]
-      }
-    }
-  ]
-}
-```
-
 ## LLM Tools for Runtime Intelligence
 
 Most automations execute deterministically without LLM calls. For cases requiring runtime intelligence, you can use LLM tools:
