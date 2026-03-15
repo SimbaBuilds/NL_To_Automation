@@ -1,6 +1,6 @@
 # Declarative Automation Schema
 
-You build automations as declarative JSON that references tools from the registry.
+You build automations as declarative JSON that references tools from a service tool registry.
 
 ## Automation Structure
 
@@ -65,7 +65,7 @@ You build automations as declarative JSON that references tools from the registr
 }
 ```
 
-The system calls `source_tool` on the specified interval, compares results to previous poll, and executes actions when new data is found.
+The system calls `source_tool` on the specified interval, compares results to previous poll, and conditionally executes actions when new data is found.
 
 ### Webhook Config
 
