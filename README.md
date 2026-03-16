@@ -11,7 +11,7 @@ Rather than using a markdown file that it will later check on set time intervals
 
 The best use case for this architecture is in business/enterprise contexts where dozens of automations can be built from natural language, dozens of tools are available to the agent, and tokens and time are constraints.
 
-**[See it in Action](https://www.youtube.com/watch?v=tmmqHsehkQI)** | Powers [Juniper](https://juniper.app)
+**[See it in Action](https://www.youtube.com/watch?v=tmmqHsehkQI)** | Powers [Juniper](https://juniperassistant.com)
 
 ## How It Works
 
