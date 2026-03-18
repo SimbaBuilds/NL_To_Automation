@@ -24,10 +24,10 @@ It allows an LLM agents systems to support requests like “at x time do y” or
    c. Optionally executes tools if actual runtime data (like a Slack channel ID) is needed to build the automation 
 2. Writes the JSON declarative script for either a scheduled, polling, or webhook automation
 3. Validation checks are run:
-   a. JSON is executable
-   b. All actions specified are valid tools
-   c. Preflight check for polling automations (check proper tool output parsing)
-   d. Full tool definitions for all actions specified were fetched by the agent
+   a. JSON is executable 
+   b. All actions specified are valid tools in the registry
+   c. For polling automations: proper tool output parsing
+   d. Full tool definitions for all actions specified were actually fetched by the agent
 4. A concise description of the automation is presented to the user for confirmation and activation
 
 The automation now lives as a db record and is fully mutable by the agent, with an optional limited edit/disable UI for the human user.
