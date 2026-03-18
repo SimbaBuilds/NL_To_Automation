@@ -27,7 +27,7 @@ It allows an LLM agents systems to support requests like “at x time do y” or
    a. JSON is executable 
    b. All actions specified are valid tools in the registry
    c. For polling automations: proper tool output parsing
-   d. Full tool definitions for all actions specified were actually fetched by the agent
+   d. Full tool definitions for all actions specified were actually fetched by the agent (so it can’t get away with guessing schemas)
 4. A concise description of the automation is presented to the user for confirmation and activation
 
 The automation now lives as a db record and is fully mutable by the agent, with an optional limited edit/disable UI for the human user.
